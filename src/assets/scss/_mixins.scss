@@ -1,0 +1,25 @@
+@function vw($value, $base: 1250) {
+	@return $value / $base * 100vw;
+}
+
+@function vmin($value, $base: 375) {
+	@return $value / $base * 100vmin;
+}
+
+@mixin mobile {
+	@media only screen and (max-width: (767px)) {
+		@content;
+	}
+}
+
+@mixin tablet {
+	@media only screen and (min-width: (768px)) and (max-width: (1249px)) {
+		@content;
+	}
+}
+
+@mixin small-desktop {
+	@media only screen and (min-width: (1249px)) and (max-width: (1370px)) {
+		@content;
+	}
+}
