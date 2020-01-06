@@ -19,13 +19,14 @@
       <div class="video__ask" v-if="activeStep === 0">
         <img class="video__illustration" src="@/assets/img/video.svg" alt="">
         <div class="video__ask-buttons">
-          <a class="video__ask-button--agree" @click="prepare()">Продолжить</a>
+          <a class="video__ask-button--agree" @click="init()">Продолжить</a>
           <a class="video__ask-button--normal">Я не хочу отвечать на такие вопросы</a>
         </div>
       </div>
       <div class="video__check" v-else>
         <div class="video__player">
           <div ref="localVideo" class="video__player-cam"></div>
+<!--          <video ref="recVideo"></video>-->
           <a class="video__player-button" @click="start()">Разрешить доступ к камере</a>
         </div>
       </div>
@@ -62,46 +63,59 @@
       }
     },
     methods: {
-      prepare() {
+      init() {
         this.activeStep = 1;
-          Flashphoner.init();
       },
-/*      checkCam() {
-        this.activeStep = 2;
-      },*/
       start () {
-          Flashphoner.createSession({urlServer: "wss://wcs5-eu.flashphoner.com:8443"}).on(Flashphoner.constants.SESSION_STATUS.ESTABLISHED,  (session) => {
-              //session connected, start streaming
-              this.startStreaming(session);
-          }).on(Flashphoner.constants.SESSION_STATUS.DISCONNECTED, () => {
-              console.log("DISCONNECTED");
-          }).on(Flashphoner.constants.SESSION_STATUS.FAILED, () => {
-              console.log("FAILED");
+          if (navigator.mediaDevices && /^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
+              Flashphoner.playFirstVideo(this.$refs.localVideo, true, "dependencies/media/preloader.mp4").then(() => {
+                  this.startRecording();
+              });
+              return;
+          }
+          this.startRecording();
+      },
+      startRecording(session) {
+          //create session
+          console.log("Create new session with url wss://wcs5-us.flashphoner.com:8443/72976f26");
+          Flashphoner.createSession({urlServer: 'wss://wcs5-us.flashphoner.com:8443/72976f26'}).on(Flashphoner.constants.SESSION_STATUS.ESTABLISHED, (session) => {
+              console.log(session.status());
+              //session connected, start playback
+              this.publishStream(session);
+          }).on(Flashphoner.constants.SESSION_STATUS.DISCONNECTED, function () {
+              console.log(Flashphoner.constants.SESSION_STATUS.DISCONNECTED);
+          }).on(Flashphoner.constants.SESSION_STATUS.FAILED, function () {
+              console.log(Flashphoner.constants.SESSION_STATUS.FAILED);
           });
       },
-      stop () {
-          this.stream.stop();
+      onStarted(session) {
+          setTimeout(() => {
+              session.stop()
+          }, 5000)
       },
-      startStreaming(session) {
-          this.stream = session.createStream({
-              name: "stream222",
+      publishStream(session) {
+          session.createStream({
+              name: 'stream2222',
               display: this.$refs.localVideo,
-              cacheLocalResources: true,
+              record: true,
               receiveVideo: false,
-              receiveAudio: false,
-              record: true
-          });
-
-          this.stream.on(Flashphoner.constants.STREAM_STATUS.PUBLISHING, (publishStream) => {
-              console.log(Flashphoner.constants.STREAM_STATUS.PUBLISHING);
+              receiveAudio: false
+          }).on(Flashphoner.constants.STREAM_STATUS.PUBLISHING, (stream) => {
+              console.log(stream.status());
+              this.onStarted(stream);
           }).on(Flashphoner.constants.STREAM_STATUS.UNPUBLISHED, (stream) => {
-              console.log(Flashphoner.constants.STREAM_STATUS.UNPUBLISHED + " " + stream.getRecordInfo());
-          }).on(Flashphoner.constants.STREAM_STATUS.FAILED, ()=> {
-              console.log(Flashphoner.constants.STREAM_STATUS.FAILED);
-              this.activeStep = 2
-          });
-
-          this.stream.publish();
+              console.log(stream.status());
+              this.createDownloadLink(stream.getRecordInfo());
+          }).on(Flashphoner.constants.STREAM_STATUS.FAILED, (stream) => {
+              console.log(stream.status(), stream.getInfo());
+              this.createDownloadLink(stream.getRecordInfo());
+          }).publish();
+      },
+      createDownloadLink(name) {
+        let link =  'https://wcs5-us.flashphoner.com:8888/client/records/' + name;
+        console.log(link)
+//        this.$refs.recVideo.src = link
+//        this.$refs.recVideo.controls = true
       }
     },
     mounted() {
