@@ -85,6 +85,9 @@ export default {
           display: flex;
           & > video {
               width: 100%;
+              height: auto;
+              object-fit: cover;
+              margin-top: -25%;
           }
       }
   }
