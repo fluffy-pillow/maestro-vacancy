@@ -36,12 +36,30 @@
 				return value.toString().replace(/(\d)(?=(\d{3})+([^\d]|$))/g, '$1 ');
 			}
 		},
+    data () {
+		return {
+            window: {
+                width: 0,
+                height: 0
+            }
+        }
+    },
     computed: {
       allVacanciesLinkText () {
-        return (this.isMobile) ? 'Все' : 'Все вакансии компании'
+        return (this.window.width <= 767) ? 'Все' : 'Все вакансии компании'
       }
+    },
+    methods: {
+        handleResize () {
+            this.window.width = window.innerWidth;
+            this.window.height = window.innerHeight;
+        }
+    },
+    mounted () {
+        window.addEventListener('resize', this.handleResize)
+        this.handleResize()
     }
-	}
+}
 </script>
 
 <style lang="scss" scoped>
@@ -122,8 +140,8 @@
 				content: '';
 				width: 8px;
 				height: 13px;
-        margin-left: 6px;
-				background: url('/assets/img/arrow.svg');
+                margin-left: 6px;
+				background: url('../../../assets/img/arrow.svg');
 			}
 		}
 	}

@@ -6,10 +6,10 @@
     .company__short-info
       h2.company__title(v-html='company.name')
       a.company__url(v-if='company.contacts.url != null' :href='company.contacts.url' v-html='company.contacts.url')
-    button.company__widget-chevron(@click="toggleDesc" v-if="!isMobile" :class="{'company__widget-chevron--rotated': isShow && !isMobile}")
+    button.company__widget-chevron(@click="toggleDesc" :class="{'company__widget-chevron--rotated': isShow}")
       img(:src='require("@/assets/img/arrow.svg")')
   transition(name="slide")
-    .company__widget-body(v-if="(isShow && isMobile) || (!isShow && isMobile)")
+    .company__widget-body( :class="{'company__widget-body--active': isShow}")
       p.company__adress(v-if='company.contacts.adress != null' v-html='company.contacts.adress')
       employees(:count='company.info.employees')
       p.company__about(v-html='company.info.about')
@@ -139,13 +139,26 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      transition: all 0.2s ease-in-out;
 
       @include tablet {
         align-items: unset;
+        max-height: 0;
+        overflow: hidden;
+
+        &--active {
+            max-height: 1000px;
+        }
       }
 
       @include mobile {
         align-items: unset;
+          max-height: 0;
+        overflow: hidden;
+
+        &--active {
+            max-height: 1000px;
+        }
       }
     }
 
@@ -155,10 +168,20 @@
       width: 42px;
       height: 42px;
       border-radius: 50%;
-      display: flex;
+      display: none;
       align-items: center;
       justify-content: center;
       border: none;
+      outline: none;
+
+      @include tablet {
+          display: flex;
+      }
+
+      @include mobile {
+          display: flex;
+      }
+
 
       & > img {
         transform: rotateZ(90deg);
